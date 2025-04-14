@@ -1,12 +1,22 @@
 import { FormEventHandler, useMemo, useState } from "react"
 import { Button, Flex, Input, Text } from '@chakra-ui/react'
-import { useIp } from "../services/ip"
 import { useAuthStore } from "../stores/auth"
 import { useNavigate } from "@tanstack/react-router"
 import toaster from 'react-hot-toast'
+import { useQuery } from "@tanstack/react-query"
 
 export default function Login() {
-  const { data } = useIp()
+  const { data } = useQuery({
+    queryKey: ['ipinfo2'],
+    async queryFn() {
+      const headers = {
+        'accept': 'application/json',
+      }
+
+      const r = await fetch('https://ipinfo.io/what-is-my-ip', { headers })
+      return r.json()
+    }
+  })
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
   const actions = useAuthStore((s) => s.actions)

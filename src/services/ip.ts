@@ -15,8 +15,7 @@ export const ipschema = z.object({
 
 export const useIp = () => {
   const { data, isFetching } = useQuery({
-    queryKey: ['ipinfo'],
-    staleTime: 10 * 60_000,
+    queryKey: ['ipinfo2'],
     async queryFn() {
       const headers = {
         'accept': 'application/json',
