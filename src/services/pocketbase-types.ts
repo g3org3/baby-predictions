@@ -301,7 +301,6 @@ export type UsersRecord = {
 
 // Response types include system fields and match responses from the PocketBase API
 export type ChallengesResponse<Texpand = unknown> = Required<ChallengesRecord> & BaseSystemFields<Texpand>
-export type CommentsResponse<Texpand = unknown> = Required<CommentsRecord> & BaseSystemFields<Texpand>
 export type EpicsResponse<Texpand = unknown> = Required<EpicsRecord> & BaseSystemFields<Texpand>
 export type EventsResponse<Texpand = unknown> = Required<EventsRecord> & BaseSystemFields<Texpand>
 export type InvestigationsResponse<Texpand = unknown> = Required<InvestigationsRecord> & BaseSystemFields<Texpand>
@@ -334,7 +333,6 @@ export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSyste
 
 export type CollectionRecords = {
   challenges: ChallengesRecord
-  comments: CommentsRecord
   epics: EpicsRecord
   events: EventsRecord
   investigations: InvestigationsRecord
@@ -366,7 +364,6 @@ export type CollectionRecords = {
 
 export type CollectionResponses = {
   challenges: ChallengesResponse
-  comments: CommentsResponse
   epics: EpicsResponse
   events: EventsResponse
   investigations: InvestigationsResponse
@@ -401,7 +398,6 @@ export type CollectionResponses = {
 
 export type TypedPocketBase = PocketBase & {
   collection(idOrName: 'challenges'): RecordService<ChallengesResponse>
-  collection(idOrName: 'comments'): RecordService<CommentsResponse>
   collection(idOrName: 'epics'): RecordService<EpicsResponse>
   collection(idOrName: 'events'): RecordService<EventsResponse>
   collection(idOrName: 'investigations'): RecordService<InvestigationsResponse>
