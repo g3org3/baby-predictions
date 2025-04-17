@@ -21,7 +21,7 @@ function RootComponent() {
 
   return (
     <React.Fragment>
-      <Flex w="100dvw" h="100dvh" bg="whitesmoke" p={4}>
+      <Flex w="100dvw" h="100dvh" bg="whitesmoke" overflow="auto">
         <Outlet />
         <Toaster
           position="top-center"

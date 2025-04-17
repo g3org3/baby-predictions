@@ -46,6 +46,7 @@ export type BabypredictionRecord = {
   due_date: string,
   peso_lbs: string,
   codigo: string,
+  tag: string,
   ip: Record<string, string>
 }
 
