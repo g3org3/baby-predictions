@@ -50,6 +50,12 @@ importers:
       sqlite3:
         specifier: 5.1.7
         version: 5.1.7
+      sweetalert2:
+        specifier: ^11.19.1
+        version: 11.19.1
+      sweetalert2-react-content:
+        specifier: ^5.1.0
+        version: 5.1.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sweetalert2@11.19.1)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -2097,6 +2103,16 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  sweetalert2-react-content@5.1.0:
+    resolution: {integrity: sha512-SBh41SdyHDY9NzwrIG6LACbClCMxIlEFP86tGVr/B4zGD4H2gGXB8o7UAJRc/RtBd/iQL9hIvuCAkrk0AgKEMA==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      sweetalert2: ^11.0.0
+
+  sweetalert2@11.19.1:
+    resolution: {integrity: sha512-+8yws3Sc1srAZbrgdhmEIZny1I1UOYhJOIOdtOlv4TYaP5kkwQ9Zm8/BT23Qg+KdByCNOazltxEJAHzXVu8mhA==}
 
   tar-fs@2.1.2:
     resolution: {integrity: sha512-EsaAXwxmx8UB7FRKqeozqEPop69DXcmYwTQwXvyAPF352HJsPdkVhvTaDPYqfNgruveJIJy3TA2l+2zj8LJIJA==}
@@ -4405,6 +4421,14 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  sweetalert2-react-content@5.1.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sweetalert2@11.19.1):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      sweetalert2: 11.19.1
+
+  sweetalert2@11.19.1: {}
 
   tar-fs@2.1.2:
     dependencies:

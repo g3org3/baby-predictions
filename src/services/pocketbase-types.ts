@@ -45,6 +45,7 @@ export type BabypredictionRecord = {
   genero: string,
   due_date: string,
   peso_lbs: string,
+  codigo: string,
   ip: Record<string, string>
 }
 
@@ -301,6 +302,7 @@ export type UsersRecord = {
 
 // Response types include system fields and match responses from the PocketBase API
 export type ChallengesResponse<Texpand = unknown> = Required<ChallengesRecord> & BaseSystemFields<Texpand>
+export type BabypredictionResponse<Texpand = unknown> = Required<BabypredictionRecord> & BaseSystemFields<Texpand>
 export type EpicsResponse<Texpand = unknown> = Required<EpicsRecord> & BaseSystemFields<Texpand>
 export type EventsResponse<Texpand = unknown> = Required<EventsRecord> & BaseSystemFields<Texpand>
 export type InvestigationsResponse<Texpand = unknown> = Required<InvestigationsRecord> & BaseSystemFields<Texpand>

@@ -1,51 +1,59 @@
-import { FormEventHandler, useMemo, useState } from "react"
-import { Button, Flex, Input, Text } from '@chakra-ui/react'
+import { FormEventHandler, useCallback } from "react"
+import { Button, Flex, Text } from '@chakra-ui/react'
+import { useMutation } from "@tanstack/react-query"
+import toaster from 'react-hot-toast'
+import z from 'zod'
+import { pb } from "../services/pb"
+import { BabypredictionResponse } from "../services/pocketbase-types"
 import { useAuthStore } from "../stores/auth"
 import { useNavigate } from "@tanstack/react-router"
-import toaster from 'react-hot-toast'
-import { useQuery } from "@tanstack/react-query"
+import PhoneInput from "./PhoneInput"
+import { consumeForm } from "../services/form"
+
+const schema = z.object({
+  phone: z.string().min(8),
+  phoneCountry: z.string().length(2),
+})
 
 export default function Login() {
-  const { data } = useQuery({
-    queryKey: ['ipinfo2'],
-    async queryFn() {
-      const headers = {
-        'accept': 'application/json',
-      }
+  const navigate = useNavigate()
+  const actions = useAuthStore(store => store.actions)
+  const { mutate, isPending } = useMutation({
+    mutationFn({ phone, phoneCountry }: z.infer<typeof schema>) {
+      const filter = `phone='${phone}' && codigo='${phoneCountry}'`
 
-      const r = await fetch('https://ipinfo.io/what-is-my-ip', { headers })
-      return r.json()
+      return pb.collection('babypredictions')
+        .getFirstListItem<BabypredictionResponse>(filter)
+    },
+    onSuccess(item) {
+      actions.setMe(item)
+      toaster.success(`Bienvenido ${item.name}`)
+      navigate({ to: '/$id', params: { id: item.id } })
+    },
+    onError() {
+      const name = prompt('No hemos encontrado tu numero, ingresa tu nombre.')
+      if (name) {
+        actions.setName(name)
+        toaster.success(`Bienvenido ${name}`)
+        navigate({ to: '/' })
+      } else {
+        window.location.reload()
+      }
     }
   })
-  const [phone, setPhone] = useState('')
-  const [name, setName] = useState('')
-  const actions = useAuthStore((s) => s.actions)
-  const navigate = useNavigate()
 
-  const country = data?.country || ""
-  const code = useMemo(() => {
-    if (!country) return ""
+  const onPhoneSearch: FormEventHandler<HTMLFormElement> = useCallback((e) => {
+    if (isPending) return
 
-    const byCountry: Record<string, string> = {
-      "FR": "+33",
-      "GT": "+502",
-      "CA": "+1",
-      "US": "+1",
-      "MX": "+52",
+    const payload = consumeForm(schema, e)
+    if (payload.error) {
+      toaster.error("Seguro que has ingresado tu numero?")
+      return
     }
-
-    return byCountry[country]
-  }, [country])
-
-  const onSumbit: FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault()
-    actions.setPhone(phone.trim())
-    actions.setName(name.trim())
-    actions.setIp(data)
-    toaster.success("Exito!")
-    setPhone('')
-    navigate({ to: '/' })
-  }
+    actions.setPhone(payload.data.phone)
+    actions.setCountry(payload.data.phoneCountry)
+    mutate(payload.data)
+  }, [actions, isPending, mutate])
 
   return (
     <Flex flex="1" p={2} rounded="md" flexDir="column" gap={4}>
@@ -59,17 +67,15 @@ export default function Login() {
         Predicciones del beb&eacute;
         Gonzalez-Rodas
       </Text>
-      <Flex flexDir="column" bg="white" p={4} boxShadow="md" rounded="md">
-        <Text>Por favor, introduce tu número de teléfono para participar</Text>
-        <form onSubmit={onSumbit}>
+      <form onSubmit={onPhoneSearch}>
+        <Flex flexDir="column" bg="white" p={4} boxShadow="md" rounded="md" gap={2}>
+          <Text>Por favor, introduce tu número de teléfono para participar</Text>
           <Flex flexDir="column" gap={4}>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={`${code} Telefono`} />
-            <small>Introduce tu nombre completo</small>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" />
-            <Button disabled={!name || !phone || phone.length < 8} type="submit" colorScheme="purple">Entrar</Button>
+            <PhoneInput isDisabled={isPending} />
+            <Button isLoading={isPending} type="submit" colorScheme="purple">Entrar</Button>
           </Flex>
-        </form>
-      </Flex>
+        </Flex>
+      </form>
     </Flex>
   )
 }

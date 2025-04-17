@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Button, CircularProgress, Flex, Input, Select, Table, Tbody, Td, Text, Tr } from '@chakra-ui/react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { Button, Flex, Input, Select, Text } from '@chakra-ui/react'
+import { useMutation } from '@tanstack/react-query'
 import { pb } from '../services/pb'
-import { BabypredictionRecord } from '../services/pocketbase-types'
+import { BabypredictionRecord, BabypredictionResponse } from '../services/pocketbase-types'
 import { useState } from 'react'
 import toaster from 'react-hot-toast'
 import { useAuthStore } from '../stores/auth'
@@ -12,31 +12,29 @@ export const Route = createFileRoute('/')({
 })
 
 function RouteComponent() {
+  const navigate = Route.useNavigate()
   const name = useAuthStore(s => s.name)
   const ip = useAuthStore(s => s.ip)
-  const phone = useAuthStore(s => s.phone)
+  const phone = useAuthStore(store => store.phone)
+  const codigo = useAuthStore(store => store.country)
+  const actions = useAuthStore(store => store.actions)
   const [genero, setGenero] = useState('')
   const [fecha, setFecha] = useState('')
   const [peso, setPeso] = useState('')
 
-  const { data, isFetching } = useQuery({
-    queryKey: ['get-prediction', phone, name],
-    queryFn() {
-      return pb.collection("babypredictions").getFirstListItem<BabypredictionRecord>(`phone='${phone}'`)
-    }
-  })
-
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: Partial<BabypredictionRecord>) => {
-      return pb.collection("babypredictions").create(payload)
+      return pb.collection("babypredictions").create<BabypredictionResponse>(payload)
     },
-    onSuccess() {
+    onSuccess(item) {
+      actions.setMe(item)
       toaster.success("Guardado!")
+      navigate({ to: '/$id', params: { id: item.id } })
     }
   })
 
   const onSubmit = () => {
-    if (!name || !phone) return
+    if (!name || !phone || isPending) return
 
     mutate({
       name,
@@ -44,67 +42,9 @@ function RouteComponent() {
       genero,
       due_date: fecha,
       peso_lbs: peso,
+      codigo: codigo || '',
       ip: ip || {},
     })
-  }
-
-  if (isFetching) {
-    return <Flex flex="1" p={2} rounded="md" flexDir="column" gap={4}>
-      <Text
-        bgGradient='linear(to-l, #7928CA, #FF0080)'
-        bgClip='text'
-        fontSize='3xl'
-        textAlign="center"
-        fontWeight='extrabold'
-      >
-        Predicciones del beb&eacute;
-        Gonzalez-Rodas
-      </Text>
-      <Flex h="200px" bg="white" p={4} rounded="md" boxShadow="md" gap={4} flexDir="column" justifyContent="center" alignItems="center">
-        <CircularProgress isIndeterminate />
-      </Flex>
-    </Flex>
-  }
-
-  if (data) {
-    return (
-      <Flex flex="1" p={2} rounded="md" flexDir="column" gap={4}>
-        <Text
-          bgGradient='linear(to-l, #7928CA, #FF0080)'
-          bgClip='text'
-          fontSize='3xl'
-          textAlign="center"
-          fontWeight='extrabold'
-        >
-          Predicciones del beb&eacute;
-          Gonzalez-Rodas
-        </Text>
-        <Flex bg="white" p={4} rounded="md" boxShadow="md" gap={4} flexDir="column">
-          <Text fontWeight="bold" fontSize="2xl">Hola {name}, esta es tu predicci&oacute;n</Text>
-          <Flex alignItems="center" gap={3}>
-            <Text>✅ Verificado</Text>
-            <Input value={phone || ""} minW="60px" flex="1" disabled />
-          </Flex>
-          <Table maxW="600px">
-            <Tbody>
-              <Tr>
-                <Td fontWeight="bold">Genero</Td>
-                <Td>{data.genero === 'boy' ? "Niño" : "Niña"}</Td>
-              </Tr>
-              <Tr>
-                <Td fontWeight="bold">Fecha</Td>
-                <Td>{data.due_date}</Td>
-              </Tr>
-              <Tr>
-                <Td fontWeight="bold">Peso</Td>
-                <Td>{data.peso_lbs}</Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </Flex>
-      </Flex>
-
-    )
   }
 
   return (
