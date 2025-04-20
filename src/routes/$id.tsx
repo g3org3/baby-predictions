@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { pb } from '../services/pb'
 import { BabypredictionResponse } from '../services/pocketbase-types'
 import { useMemo } from 'react'
+import { getPredictionsByTagQuery } from '../services/predictions'
 
 export const Route = createFileRoute('/$id')({
   component: RouteComponent,
@@ -54,17 +55,8 @@ function RouteComponent() {
   )
 }
 
-
 function ListPrediction(props: { tag: string }) {
-  const { data = [] } = useQuery({
-    queryKey: ['babypredictions', 'get-all-by-tag', props.tag],
-    queryFn() {
-      const filter = props.tag === 'PARENTS' ? '' : `tag='${props.tag}' || tag='PARENTS'`
-      return pb
-        .collection("babypredictions")
-        .getFullList<BabypredictionResponse>({ filter, sort: 'name' })
-    }
-  })
+  const { data = [] } = useQuery(getPredictionsByTagQuery(props))
 
   const boyCount = useMemo(() => {
     return data.map(item => item.genero).filter(item => item === 'boy').length
@@ -88,14 +80,12 @@ function ListPrediction(props: { tag: string }) {
             <Td fontWeight="bold">Nombre</Td>
             <Td fontWeight="bold">Genero</Td>
             <Td fontWeight="bold">Peso</Td>
-            <Td fontWeight="bold">Fecha</Td>
           </Tr>
         </Thead>
         <Tbody>
           {data.map(item => (
-            <Tr>
+            <Tr key={item.id}>
               <Td>{item.name}</Td>
-              <Td>******</Td>
               <Td>******</Td>
               <Td>******</Td>
             </Tr>

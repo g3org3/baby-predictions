@@ -8,6 +8,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
+import { PostHogConfig } from 'posthog-js'
 
 // Create a new router instance
 const router = createRouter({ routeTree })
@@ -38,8 +39,9 @@ const theme = extendTheme({ colors })
 const queryClient = new QueryClient()
 
 const options = {
-  api_host: import.meta.env.VITE_APP_POSTHOG_HOST
-}
+  api_host: import.meta.env.VITE_APP_POSTHOG_HOST as string,
+  person_profiles: 'always',
+} satisfies Partial<PostHogConfig>
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

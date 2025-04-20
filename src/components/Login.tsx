@@ -1,6 +1,6 @@
 import { FormEventHandler, useCallback } from "react"
 import { Button, Flex, Text } from '@chakra-ui/react'
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toaster from 'react-hot-toast'
 import z from 'zod'
 import { pb } from "../services/pb"
@@ -9,6 +9,8 @@ import { useAuthStore } from "../stores/auth"
 import { useNavigate } from "@tanstack/react-router"
 import PhoneInput from "./PhoneInput"
 import { consumeForm } from "../services/form"
+import { usePostHog } from "posthog-js/react"
+import { getPredictionsByTagQuery } from "../services/predictions"
 
 const schema = z.object({
   phone: z.string().min(8),
@@ -17,7 +19,9 @@ const schema = z.object({
 
 export default function Login() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const actions = useAuthStore(store => store.actions)
+  const posthog = usePostHog()
   const { mutate, isPending } = useMutation({
     mutationFn({ phone, phoneCountry }: z.infer<typeof schema>) {
       const filter = `phone='${phone}' && codigo='${phoneCountry}'`
@@ -27,11 +31,15 @@ export default function Login() {
     },
     onSuccess(item) {
       actions.setMe(item)
+      posthog?.capture('success-login', { phone: item.phone, name: item.name })
       toaster.success(`Bienvenido ${item.name}`)
+      posthog?.identify(item.phone, { phone: item.phone, name: item.name })
+      queryClient.ensureQueryData(getPredictionsByTagQuery({ tag: item.tag }))
       navigate({ to: '/$id', params: { id: item.id } })
     },
     onError() {
       const name = prompt('No hemos encontrado tu numero, ingresa tu nombre.')
+      posthog?.capture('signup', { name })
       if (name) {
         actions.setName(name)
         toaster.success(`Bienvenido ${name}`)
@@ -52,8 +60,9 @@ export default function Login() {
     }
     actions.setPhone(payload.data.phone)
     actions.setCountry(payload.data.phoneCountry)
+    posthog?.capture('search-phone', { phone: payload.data.phone, code: payload.data.phoneCountry })
     mutate(payload.data)
-  }, [actions, isPending, mutate])
+  }, [actions, isPending, mutate, posthog])
 
   return (
     <Flex flex="1" p={2} rounded="md" flexDir="column" gap={4}>
