@@ -22,6 +22,7 @@ export default function Login() {
   const queryClient = useQueryClient()
   const actions = useAuthStore(store => store.actions)
   const posthog = usePostHog()
+
   const { mutate, isPending } = useMutation({
     mutationFn({ phone, phoneCountry }: z.infer<typeof schema>) {
       const filter = `phone='${phone}' && codigo='${phoneCountry}'`

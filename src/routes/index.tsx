@@ -6,6 +6,7 @@ import { BabypredictionRecord, BabypredictionResponse } from '../services/pocket
 import { useState } from 'react'
 import toaster from 'react-hot-toast'
 import { useAuthStore } from '../stores/auth'
+import { usePostHog } from 'posthog-js/react'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -18,6 +19,7 @@ function RouteComponent() {
   const phone = useAuthStore(store => store.phone)
   const codigo = useAuthStore(store => store.country)
   const actions = useAuthStore(store => store.actions)
+  const posthog = usePostHog()
   const [genero, setGenero] = useState('')
   const [fecha, setFecha] = useState('')
   const [peso, setPeso] = useState('')
@@ -28,14 +30,20 @@ function RouteComponent() {
     },
     onSuccess(item) {
       actions.setMe(item)
+      posthog?.capture('save-prediction')
       toaster.success("Guardado!")
       navigate({ to: '/$id', params: { id: item.id } })
+    },
+    onError(e) {
+      posthog?.captureException(e)
+      posthog?.capture('failed-to-save-prediction')
     }
   })
 
   const onSubmit = () => {
     if (!name || !phone || isPending) return
 
+    posthog?.capture('save-prediction')
     mutate({
       name,
       phone,

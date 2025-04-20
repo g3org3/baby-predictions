@@ -2,10 +2,9 @@ import { Text, Flex, Input, Table, Tbody, Td, Tr, Thead } from '@chakra-ui/react
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth'
-import { pb } from '../services/pb'
-import { BabypredictionResponse } from '../services/pocketbase-types'
 import { useMemo } from 'react'
 import { getPredictionsByTagQuery } from '../services/predictions'
+import { useFeatureFlagEnabled } from 'posthog-js/react'
 
 export const Route = createFileRoute('/$id')({
   component: RouteComponent,
@@ -57,6 +56,7 @@ function RouteComponent() {
 
 function ListPrediction(props: { tag: string }) {
   const { data = [] } = useQuery(getPredictionsByTagQuery(props))
+  const isEnabled = useFeatureFlagEnabled("show_others_results")
 
   const boyCount = useMemo(() => {
     return data.map(item => item.genero).filter(item => item === 'boy').length
@@ -86,8 +86,8 @@ function ListPrediction(props: { tag: string }) {
           {data.map(item => (
             <Tr key={item.id}>
               <Td>{item.name}</Td>
-              <Td>******</Td>
-              <Td>******</Td>
+              <Td>{isEnabled ? item.genero : '*****'}</Td>
+              <Td>{isEnabled ? item.peso_lbs : '***'}</Td>
             </Tr>
           ))}
         </Tbody>

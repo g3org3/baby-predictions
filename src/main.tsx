@@ -41,6 +41,7 @@ const queryClient = new QueryClient()
 const options = {
   api_host: import.meta.env.VITE_APP_POSTHOG_HOST as string,
   person_profiles: 'always',
+  capture_exceptions: true,
 } satisfies Partial<PostHogConfig>
 
 createRoot(document.getElementById('root')!).render(
