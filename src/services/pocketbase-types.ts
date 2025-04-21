@@ -18,6 +18,8 @@ export type HTMLString = string
 // System fields
 export type BaseSystemFields<T = never> = {
 	id: RecordIdString
+	created: IsoDateString
+	updated: IsoDateString
 	collectionId: string
 	collectionName: Collections
 	expand?: T
@@ -32,7 +34,31 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
+export enum BabypredictionsGeneroOptions {
+	"boy" = "boy",
+	"girl" = "girl",
+}
+export type BabypredictionsRecord<Tip = unknown> = {
+	codigo?: string
+	due_date?: string
+	genero?: BabypredictionsGeneroOptions
+	ip?: null | Tip
+	name?: string
+	peso_lbs?: string
+	phone?: string
+	tag?: string
+}
+
+export type UsersRecord = {
+	avatar?: string
+	img?: string
+	isAdmin?: boolean
+	name?: string
+}
+
 // Response types include system fields and match responses from the PocketBase API
+export type BabypredictionsResponse<Tip = unknown, Texpand = unknown> = Required<BabypredictionsRecord<Tip>> & BaseSystemFields<Texpand>
+export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 

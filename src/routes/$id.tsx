@@ -1,13 +1,20 @@
-import { Text, Flex, Input, Table, Tbody, Td, Tr, Thead } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
+import { Text, Flex, Input, Table, Tbody, Td, Tr, Thead, Button, TableContainer } from '@chakra-ui/react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { getPredictionsByTagQuery } from '../services/predictions'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { pb } from '../services/pb'
+import { Collections } from '../services/pocketbase-types'
+import toaster from 'react-hot-toast'
+import z from 'zod'
 
 export const Route = createFileRoute('/$id')({
   component: RouteComponent,
+  validateSearch: z.object({
+    tag: z.string().nullish()
+  })
 })
 
 function RouteComponent() {
@@ -49,13 +56,14 @@ function RouteComponent() {
           </Tbody>
         </Table>
       </Flex>
-      <ListPrediction tag={data.tag} />
+      <ListPrediction tag={data.tag} isAdmin={data.phone === '40058333'} />
     </Flex>
   )
 }
 
-function ListPrediction(props: { tag: string }) {
-  const { data = [] } = useQuery(getPredictionsByTagQuery(props))
+function ListPrediction(props: { tag: string, isAdmin: boolean }) {
+  const { tag } = Route.useSearch()
+  const { data = [] } = useQuery(getPredictionsByTagQuery({ tag: tag || props.tag }))
   const isEnabled = useFeatureFlagEnabled("show_others_results")
 
   const boyCount = useMemo(() => {
@@ -74,24 +82,58 @@ function ListPrediction(props: { tag: string }) {
           {data.length - boyCount}
         </Flex>
       </Flex>
-      <Table>
-        <Thead>
-          <Tr>
-            <Td fontWeight="bold">Nombre</Td>
-            <Td fontWeight="bold">Genero</Td>
-            <Td fontWeight="bold">Peso</Td>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {data.map(item => (
-            <Tr key={item.id}>
-              <Td>{item.name}</Td>
-              <Td>{isEnabled ? item.genero : '*****'}</Td>
-              <Td>{isEnabled ? item.peso_lbs : '***'}</Td>
+      <TableContainer>
+        <Table variant="striped">
+          <Thead>
+            <Tr>
+              <Td fontWeight="bold">Nombre</Td>
+              <Td fontWeight="bold">Genero</Td>
+              <Td fontWeight="bold">Peso</Td>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {data.map(item => (
+              <Tr key={item.id}>
+                <Td><Flag code={item.codigo} /> {item.name}</Td>
+                <Td>{isEnabled ? item.genero : '*****'}</Td>
+                <Td>{isEnabled ? item.peso_lbs : '***'}</Td>
+                {props.isAdmin ? <Td><DeleteButton id={item.id} /></Td> : null}
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
     </Flex>
   )
+}
+
+function DeleteButton(props: { id: string }) {
+  const { mutate, isPending } = useMutation({
+    mutationFn(id: string) {
+      return pb.collection(Collections.Babypredictions).delete(id)
+    },
+    onSuccess() {
+      toaster.success("Deleted")
+    },
+    onError() {
+      toaster.error("Failed to delete")
+    }
+  })
+  const onDelete = useCallback(() => {
+    mutate(props.id)
+  }, [mutate, props.id])
+
+  return (
+    <Button isLoading={isPending} onClick={onDelete} size="sm">del</Button>
+  )
+}
+
+function Flag(props: { code: string }) {
+  if (props.code === 'GT') return <>🇬🇹</>
+  if (props.code === 'MX') return <>🇲🇽</>
+  if (props.code === 'US') return <>🇺🇸</>
+  if (props.code === 'FR') return <>🇫🇷</>
+  if (props.code === 'ES') return <>🇪🇸</>
+  if (props.code === 'CA') return <>🇨🇦</>
+  return <>🏁</>
 }

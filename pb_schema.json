@@ -107,20 +107,6 @@
       },
       {
         "system": false,
-        "id": "xffisp7u",
-        "name": "peso_lbs",
-        "type": "number",
-        "required": false,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null,
-          "noDecimal": false
-        }
-      },
-      {
-        "system": false,
         "id": "urdbb2nj",
         "name": "due_date",
         "type": "text",
@@ -151,6 +137,60 @@
         "system": false,
         "id": "gbvui3a0",
         "name": "name",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "qiny9g4t",
+        "name": "ip",
+        "type": "json",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSize": 2000000
+        }
+      },
+      {
+        "system": false,
+        "id": "clq7moqf",
+        "name": "peso_lbs",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "zesps5lm",
+        "name": "tag",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fx3twebk",
+        "name": "codigo",
         "type": "text",
         "required": false,
         "presentable": false,

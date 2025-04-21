@@ -1,16 +1,19 @@
-import { FormEventHandler, useCallback } from "react"
-import { Button, Flex, Text } from '@chakra-ui/react'
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toaster from 'react-hot-toast'
 import z from 'zod'
-import { pb } from "../services/pb"
-import { BabypredictionResponse } from "../services/pocketbase-types"
-import { useAuthStore } from "../stores/auth"
+import { Button, Flex, Text } from "@chakra-ui/react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import PhoneInput from "./PhoneInput"
-import { consumeForm } from "../services/form"
 import { usePostHog } from "posthog-js/react"
+import { FormEventHandler, useCallback, useState } from "react"
+
+import PromptDialog from "./AskNameDialog"
+import PhoneInput from "./PhoneInput"
+import { BabypredictionsResponse } from "../services/pocketbase-types"
+import { consumeForm } from "../services/form"
 import { getPredictionsByTagQuery } from "../services/predictions"
+import { pb } from "../services/pb"
+import { useAuthStore } from "../stores/auth"
+
 
 const schema = z.object({
   phone: z.string().min(8),
@@ -22,13 +25,14 @@ export default function Login() {
   const queryClient = useQueryClient()
   const actions = useAuthStore(store => store.actions)
   const posthog = usePostHog()
+  const [isAskForNameOpen, setIsAskForName] = useState(false)
 
   const { mutate, isPending } = useMutation({
     mutationFn({ phone, phoneCountry }: z.infer<typeof schema>) {
       const filter = `phone='${phone}' && codigo='${phoneCountry}'`
 
       return pb.collection('babypredictions')
-        .getFirstListItem<BabypredictionResponse>(filter)
+        .getFirstListItem<BabypredictionsResponse>(filter)
     },
     onSuccess(item) {
       actions.setMe(item)
@@ -39,15 +43,8 @@ export default function Login() {
       navigate({ to: '/$id', params: { id: item.id } })
     },
     onError() {
-      const name = prompt('No hemos encontrado tu numero, ingresa tu nombre.')
       posthog?.capture('signup', { name })
-      if (name) {
-        actions.setName(name)
-        toaster.success(`Bienvenido ${name}`)
-        navigate({ to: '/' })
-      } else {
-        window.location.reload()
-      }
+      setIsAskForName(true)
     }
   })
 
@@ -86,6 +83,11 @@ export default function Login() {
           </Flex>
         </Flex>
       </form>
+      <PromptDialog
+        onClose={() => setIsAskForName(false)}
+        isOpen={isAskForNameOpen}
+        header="Atencion"
+        desc="Ingresa tu nombre" />
     </Flex>
   )
 }

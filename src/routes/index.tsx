@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Button, Flex, Input, Select, Text } from '@chakra-ui/react'
 import { useMutation } from '@tanstack/react-query'
 import { pb } from '../services/pb'
-import { BabypredictionRecord, BabypredictionResponse } from '../services/pocketbase-types'
+import { BabypredictionsGeneroOptions, BabypredictionsRecord, BabypredictionsResponse } from '../services/pocketbase-types'
 import { useState } from 'react'
 import toaster from 'react-hot-toast'
 import { useAuthStore } from '../stores/auth'
@@ -20,13 +20,13 @@ function RouteComponent() {
   const codigo = useAuthStore(store => store.country)
   const actions = useAuthStore(store => store.actions)
   const posthog = usePostHog()
-  const [genero, setGenero] = useState('')
+  const [genero, setGenero] = useState<BabypredictionsGeneroOptions | "">('')
   const [fecha, setFecha] = useState('')
   const [peso, setPeso] = useState('')
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (payload: Partial<BabypredictionRecord>) => {
-      return pb.collection("babypredictions").create<BabypredictionResponse>(payload)
+    mutationFn: (payload: Partial<BabypredictionsRecord>) => {
+      return pb.collection("babypredictions").create<BabypredictionsResponse>(payload)
     },
     onSuccess(item) {
       actions.setMe(item)
@@ -47,7 +47,7 @@ function RouteComponent() {
     mutate({
       name,
       phone,
-      genero,
+      genero: genero as BabypredictionsGeneroOptions,
       due_date: fecha,
       peso_lbs: peso,
       codigo: codigo || '',
@@ -74,7 +74,7 @@ function RouteComponent() {
           <Input value={phone || ""} minW="60px" flex="1" disabled />
         </Flex>
         <Text>Genero</Text>
-        <Select disabled={isPending} defaultValue={genero} onChange={(e) => setGenero(e.target.value)}>
+        <Select disabled={isPending} defaultValue={genero} onChange={(e) => setGenero(e.target.value as BabypredictionsGeneroOptions)}>
           <option value="">-</option>
           <option value="boy">Niño</option>
           <option value="girl">Niña</option>
