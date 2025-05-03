@@ -1,14 +1,15 @@
-import { Text, Flex, Input, Table, Tbody, Td, Tr, Thead, Button, TableContainer } from '@chakra-ui/react'
+import { Text, Flex, Input, Th, Table, Tbody, Td, Tr, Thead, Button, TableContainer, TabList, Tabs, Tab, TabPanels, TabPanel } from '@chakra-ui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { getPredictionsByTagQuery } from '../services/predictions'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { pb } from '../services/pb'
-import { Collections } from '../services/pocketbase-types'
+import { BabypredictionsResponse, Collections } from '../services/pocketbase-types'
 import toaster from 'react-hot-toast'
 import z from 'zod'
+import { DateTime } from 'luxon'
 
 export const Route = createFileRoute('/$id')({
   component: RouteComponent,
@@ -56,7 +57,87 @@ function RouteComponent() {
           </Tbody>
         </Table>
       </Flex>
-      <ListPrediction tag={data.tag} isAdmin={data.phone === '40058333'} />
+      <Tabs>
+        <TabList>
+          <Tab>Genero</Tab>
+          <Tab>Fechas</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <ListPrediction tag={data.tag} isAdmin={data.phone === '0767380649'} />
+          </TabPanel>
+          <TabPanel>
+            <ListFechas tag={data.tag} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Flex>
+  )
+}
+
+function ListFechas(props: { tag: string }) {
+  const [isExpanded, setExpanded] = useState(false)
+  const { tag } = Route.useSearch()
+  const { data = [] } = useQuery(getPredictionsByTagQuery({ tag: tag || props.tag }))
+
+  const byDueDate = useMemo(() => {
+    const by: Record<string, Record<string, BabypredictionsResponse[]>> = {}
+    for (const item of data) {
+      const duedate = item.due_date
+      const [year, month] = item.due_date.split('-')
+      const key = `${year}-${month}`
+      if (!by[key]) {
+        by[key] = {}
+      }
+      if (!by[key][duedate]) {
+        by[key][duedate] = []
+      }
+      by[key][duedate].push(item)
+    }
+    return by
+  }, [data])
+
+  const months = useMemo(() => {
+    return Object.keys(byDueDate).sort()
+  }, [byDueDate])
+
+  return (
+    <Flex bg="white" boxShadow="md" flexDir="column">
+      <Button onClick={() => setExpanded(!isExpanded)}>Ver detalle</Button>
+      <Table>
+        <Thead>
+          <Tr>
+            <Th>Fecha</Th>
+            <Th>Total</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {months.map(month => {
+            const dates = Object.keys(byDueDate[month])
+            const monthi18n: Record<string, string> = {
+              '2025-09': 'Septiembre',
+              '2025-10': 'Octubre',
+              '2025-11': 'Noviembre',
+              '2025-12': 'Diciembre',
+              '2026-01': 'Enero',
+            }
+            return (<>
+              <Tr>
+                <Td bg={!isExpanded ? "unset" : "gray.100"}>{monthi18n[month]}</Td>
+                <Td bg={!isExpanded ? "unset" : "gray.100"}>{Object.values(byDueDate[month]).map(items => items.length).reduce((sum, i) => sum + i, 0)}</Td>
+              </Tr>
+              {isExpanded ?
+                dates.map(date => (
+                  <Tr>
+                    <Td fontFamily="mono">{DateTime.fromSQL(`${date} 00:00:00`).toFormat('MMM dd')}</Td>
+                    <Td>{byDueDate[month][date].map(item => item.name).length}</Td>
+                  </Tr>
+                )) : null}
+            </>
+            )
+          })}
+        </Tbody>
+      </Table>
     </Flex>
   )
 }
@@ -88,7 +169,6 @@ function ListPrediction(props: { tag: string, isAdmin: boolean }) {
             <Tr>
               <Td fontWeight="bold">Nombre</Td>
               <Td fontWeight="bold">Genero</Td>
-              <Td fontWeight="bold">Peso</Td>
             </Tr>
           </Thead>
           <Tbody>
@@ -96,7 +176,6 @@ function ListPrediction(props: { tag: string, isAdmin: boolean }) {
               <Tr key={item.id}>
                 <Td><Flag code={item.codigo} /> {item.name}</Td>
                 <Td>{isEnabled ? item.genero : '*****'}</Td>
-                <Td>{isEnabled ? item.peso_lbs : '***'}</Td>
                 {props.isAdmin ? <Td><DeleteButton id={item.id} /></Td> : null}
               </Tr>
             ))}
