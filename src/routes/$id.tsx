@@ -1,4 +1,4 @@
-import { Text, Flex, Input, Th, Table, Tbody, Td, Tr, Thead, Button, TableContainer, TabList, Tabs, Tab, TabPanels, TabPanel } from '@chakra-ui/react'
+import { Text, Flex, Input, Th, Table, Tbody, Td, Tr, Thead, Button, TableContainer, TabList, Tabs, Tab, TabPanels, TabPanel, Select } from '@chakra-ui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth'
@@ -20,6 +20,9 @@ export const Route = createFileRoute('/$id')({
 
 function RouteComponent() {
   const data = useAuthStore(store => store.me)
+  const navigate = Route.useNavigate()
+  const id = Route.useParams()
+  const { tag } = Route.useSearch()
   if (!data) return null
 
   return (
@@ -36,6 +39,11 @@ function RouteComponent() {
       </Text>
       <Flex bg="white" p={4} rounded="md" boxShadow="md" gap={4} flexDir="column">
         <Text fontWeight="bold" fontSize="2xl">Hola {data.name}, esta es tu predicci&oacute;n</Text>
+        <Select defaultValue={tag || data.tag} onChange={e => navigate({ to: '/$id', params: id, search: (s) => ({ ...s, tag: e.target.value }) })}>
+          <option value="JAG">Gonzalez-Caravantes</option>
+          <option value="ALE">Rodas-Mendia</option>
+          <option value="-">TODOS</option>
+        </Select>
         <Flex alignItems="center" gap={3}>
           <Text>✅ Verificado</Text>
           <Input value={data.phone} minW="60px" flex="1" disabled />
