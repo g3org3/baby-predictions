@@ -61,6 +61,7 @@ function RouteComponent() {
         <TabList>
           <Tab>Genero</Tab>
           <Tab>Fechas</Tab>
+          <Tab>Peso</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -102,8 +103,8 @@ function ListFechas(props: { tag: string }) {
   }, [byDueDate])
 
   return (
-    <Flex bg="white" boxShadow="md" flexDir="column">
-      <Button onClick={() => setExpanded(!isExpanded)}>Ver detalle</Button>
+    <Flex bg="white" boxShadow="md" flexDir="column" p="1" gap={3}>
+      <Button size="sm" variant="outline" colorScheme="purple" alignSelf="center" onClick={() => setExpanded(!isExpanded)}>Ver detalle</Button>
       <Table>
         <Thead>
           <Tr>
