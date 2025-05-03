@@ -70,8 +70,52 @@ function RouteComponent() {
           <TabPanel>
             <ListFechas tag={data.tag} />
           </TabPanel>
+          <TabPanel>
+            <ListPeso tag={data.tag} />
+          </TabPanel>
         </TabPanels>
       </Tabs>
+    </Flex>
+  )
+}
+
+function ListPeso(props: { tag: string }) {
+  const { tag } = Route.useSearch()
+  const { data = [] } = useQuery(getPredictionsByTagQuery({ tag: tag || props.tag }))
+
+  const byPeso = useMemo(() => {
+    const by: Record<string, BabypredictionsResponse[]> = {}
+    for (const item of data) {
+      if (!by[item.peso_lbs]) {
+        by[item.peso_lbs] = []
+      }
+      by[item.peso_lbs].push(item)
+    }
+    return by
+  }, [data])
+
+  const pesos = useMemo(() => {
+    return Object.keys(byPeso).filter(Boolean).sort()
+  }, [byPeso])
+
+  return (
+    <Flex flexDir="column" bg="white">
+      <Table>
+        <Thead>
+          <Tr>
+            <Th>Peso</Th>
+            <Th>Total</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {pesos.map(peso => (
+            <Tr>
+              <Td>{peso}</Td>
+              <Td>{byPeso[peso].length}</Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
     </Flex>
   )
 }
