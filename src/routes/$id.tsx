@@ -59,7 +59,7 @@ function RouteComponent() {
               <Td>{data.due_date}</Td>
             </Tr>
             <Tr>
-              <Td fontWeight="bold">Peso</Td>
+              <Td fontWeight="bold">Peso lbs</Td>
               <Td>{data.peso_lbs}</Td>
             </Tr>
           </Tbody>
@@ -111,7 +111,7 @@ function ListPeso(props: { tag: string }) {
       <Table>
         <Thead>
           <Tr>
-            <Th>Peso</Th>
+            <Th>Peso (lbs)</Th>
             <Th>Total</Th>
           </Tr>
         </Thead>
