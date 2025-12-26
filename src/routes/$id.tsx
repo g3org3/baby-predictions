@@ -4,7 +4,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth'
 import { useCallback, useMemo, useState } from 'react'
 import { getPredictionsByTagQuery } from '../services/predictions'
-import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { pb } from '../services/pb'
 import { BabypredictionsResponse, Collections } from '../services/pocketbase-types'
 import toaster from 'react-hot-toast'
@@ -119,7 +118,7 @@ function ListPeso(props: { tag: string }) {
           {pesos.map(peso => (
             <Tr>
               <Td>{peso}</Td>
-              <Td>{byPeso[peso].length}</Td>
+              <Td>{byPeso[peso].map(x => x.name).join(',')}</Td>
             </Tr>
           ))}
         </Tbody>
@@ -162,11 +161,13 @@ function ListFechas(props: { tag: string }) {
           <Tr>
             <Th>Fecha</Th>
             <Th>Total</Th>
+            <Th></Th>
           </Tr>
         </Thead>
         <Tbody>
           {months.map(month => {
             const dates = Object.keys(byDueDate[month])
+            dates.sort()
             const monthi18n: Record<string, string> = {
               '2025-09': 'Septiembre',
               '2025-10': 'Octubre',
@@ -178,12 +179,14 @@ function ListFechas(props: { tag: string }) {
               <Tr>
                 <Td bg={!isExpanded ? "unset" : "gray.100"}>{monthi18n[month]}</Td>
                 <Td bg={!isExpanded ? "unset" : "gray.100"}>{Object.values(byDueDate[month]).map(items => items.length).reduce((sum, i) => sum + i, 0)}</Td>
+                <Td bg={!isExpanded ? "unset" : "gray.100"}></Td>
               </Tr>
               {isExpanded ?
                 dates.map(date => (
                   <Tr>
                     <Td fontFamily="mono">{DateTime.fromSQL(`${date} 00:00:00`).toFormat('MMM dd')}</Td>
                     <Td>{byDueDate[month][date].map(item => item.name).length}</Td>
+                    <Td>{byDueDate[month][date].map(item => item.name).join(',')}</Td>
                   </Tr>
                 )) : null}
             </>
@@ -198,7 +201,7 @@ function ListFechas(props: { tag: string }) {
 function ListPrediction(props: { tag: string, isAdmin: boolean }) {
   const { tag } = Route.useSearch()
   const { data = [] } = useQuery(getPredictionsByTagQuery({ tag: tag || props.tag }))
-  const isEnabled = useFeatureFlagEnabled("show_others_results")
+  const isEnabled = true
 
   const boyCount = useMemo(() => {
     return data.map(item => item.genero).filter(item => item === 'boy').length
