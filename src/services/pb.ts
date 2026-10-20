@@ -1,4 +1,4 @@
 import PocketBase from 'pocketbase'
 
-export const pb = new PocketBase('https://pb3.jorgeadolfo.com')
+export const pb = new PocketBase('https://pb.jagc.app')
 pb.autoCancellation(false)
